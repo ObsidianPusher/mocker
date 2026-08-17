@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mocker 控制台</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="login-view" class="login-view hidden">
+    <div class="login-card">
+      <p class="eyebrow">Mocker Secure Access</p>
+      <h2>登录控制台</h2>
+      <p class="muted">请输入管理账号和密码以继续。</p>
+      <form id="login-form" class="login-form">
+        <label>账号<input id="login-username" name="username" autocomplete="username" /></label>
+        <label>密码<input id="login-password" name="password" type="password" autocomplete="current-password" /></label>
+        <button type="submit" class="primary">登录</button>
+      </form>
+      <p id="login-error" class="muted small"></p>
+    </div>
+  </div>
+
+  <div id="app-view" class="app-shell hidden">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Edge-native orchestration</p>
+        <h1>MOCKER 控制台</h1>
+        <p>管理 musl 自启服务、查看日志及监控资源，支持目录级文件访问。</p>
+      </div>
+      <div class="header-actions">
+        <span id="current-user" class="pill">未登录</span>
+        <span class="pill">低内存优化</span>
+        <span class="pill">musl-ready</span>
+      </div>
+    </header>
+
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+    <main class="tab-layout">
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="status">状态</button>
+        <button class="tab-btn" data-tab="files">文件</button>
+        <button class="tab-btn" data-tab="config">配置</button>
+        <button class="tab-btn" data-tab="account">账号</button>
+      </nav>
+
+      <section class="tab-panel active" data-tab="status">
+      <section class="panel metrics" id="metrics-total">
+        <div>
+          <p class="label">系统资源</p>
+          <h2 data-cpu>--%</h2>
+          <p class="muted" data-mem>--</p>
+          <p class="muted extra" data-mem-system>系统内存 --</p>
+          <p class="muted extra" data-mem-services>服务占用 --</p>
+          <p class="muted extra" data-net-down>下行速率 --</p>
+          <p class="muted extra" data-net-up>上行速率 --</p>
+        </div>
+        <div class="metrics-legend">
+          <span>CPU 总占用</span>
+          <span>内存 运行态</span>
+        </div>
+      </section>
+
+        <section class="panel service-panel">
+          <header class="panel-header">
+            <div>
+              <p class="label">服务</p>
+              <h2>自动启动 & 运行管理</h2>
+            </div>
+          </header>
+          <div id="service-list" class="service-grid"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" data-tab="files">
+        <section class="panel file-panel">
+          <header class="panel-header">
+            <div>
+              <p class="label">文件资源</p>
+              <h2>受限根目录访问</h2>
+            </div>
+            <p id="file-path" class="muted">根目录</p>
+          </header>
+          <div class="file-layout">
+            <div class="file-tree" id="file-tree"></div>
+            <div class="file-editor">
+              <div class="editor-toolbar">
+                <div class="file-meta">
+                  <div>
+                    <p class="muted small">当前文件</p>
+                    <h3 id="file-name">未选择</h3>
+                  </div>
+                  <span id="file-type" class="badge badge-muted">-</span>
+                </div>
+                <div class="editor-actions">
+                  <button id="toggle-wrap" type="button">自动换行</button>
+                </div>
+              </div>
+              <div class="editor-body">
+                <div id="line-numbers" class="line-numbers" aria-hidden="true"></div>
+                <textarea id="file-content" placeholder="选择文件后编辑" rows="10"></textarea>
+              </div>
+              <div class="editor-footer">
+                <span>编码：<strong id="file-encoding">utf-8</strong></span>
+                <button id="file-save" class="primary" disabled>保存修改</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="tab-panel" data-tab="config">
+        <section class="panel config-panel">
+          <header class="panel-header">
+            <div>
+              <p class="label">服务配置</p>
+              <h2>在 Web 界面添加或调整自动启动</h2>
+            </div>
+          </header>
+          <div class="config-actions">
+            <button id="add-config-row" class="primary">新增服务</button>
+            <button id="save-config" class="primary">保存配置</button>
+          </div>
+          <p class="muted small">服务路径必须在允许的根目录下，日志默认写入可执行文件所在目录，保存后会重新应用服务配置。</p>
+          <div id="config-service-list" class="config-list"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" data-tab="account">
+        <section class="panel account-panel">
+          <header class="panel-header">
+            <div>
+              <p class="label">账号</p>
+              <h2>修改密码与安全退出</h2>
+            </div>
+          </header>
+          <div class="account-grid">
+            <div class="account-card">
+              <p class="muted small">当前账号</p>
+              <h3 id="account-username">-</h3>
+              <button id="logout-btn">退出登录</button>
+            </div>
+            <form id="password-form" class="account-card">
+              <p class="muted small">修改密码</p>
+              <label>当前密码<input id="current-password" type="password" autocomplete="current-password" /></label>
+              <label>新密码<input id="new-password" type="password" autocomplete="new-password" /></label>
+              <label>确认新密码<input id="confirm-password" type="password" autocomplete="new-password" /></label>
+              <button type="submit" class="primary">保存新密码</button>
+            </form>
+            <div class="account-card">
+              <p class="muted small">控制台 HTTPS</p>
+              <div class="muted extra">当前地址：<span id="http-host">-</span></div>
+              <label>证书文件<input id="http-cert-file" type="text" placeholder="/etc/ssl/certs/server.crt" /></label>
+              <label>私钥文件<input id="http-key-file" type="text" placeholder="/etc/ssl/private/server.key" /></label>
+              <label>mocker 内存上限(MB)<input id="mocker-memory-limit" type="number" min="16" max="1048576" placeholder="默认 128" /></label>
+              <div class="account-actions">
+                <button id="save-http" type="button" class="primary">保存配置</button>
+              </div>
+              <p class="muted extra">控制台默认强制 HTTPS；修改证书或私钥后保存并重启进程生效。</p>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

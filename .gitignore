@@ -1,0 +1,32 @@
+# Binaries
+mocker
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Build artifacts
+dist/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Data files (if contains runtime data)
+data/
+
+# Config with sensitive info
+config.json
