@@ -1,5 +1,5 @@
 # Binaries
-mocker
+/mocker
 *.exe
 *.exe~
 *.dll
